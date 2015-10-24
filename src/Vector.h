@@ -197,3 +197,4 @@ inline Vector3f normalize(const Vector3f &v)
 
 #endif /* _VECTOR3F_H_ */
 
+

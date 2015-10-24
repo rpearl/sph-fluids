@@ -1,15 +1,15 @@
 #include <iostream>
 #include <sys/time.h>
 #include <cstdio>
-#include <GL/glut.h>
+#include <GLUT/glut.h>
 
 #include "sph.h"
 
 using namespace std;
 
-#define WIDTH		20
-#define HEIGHT		15
-#define DEPTH		20
+#define WIDTH		6
+#define HEIGHT		6
+#define DEPTH		6
 
 
 int wndWidth = 700, wndHeight = 700;
@@ -28,9 +28,9 @@ Vector3f gravity_direction;
 
 int simulation_steps = 2;
 
-const int particle_count = 2000;
+const int particle_count = 256;
 
-#define SCENE 1
+#define SCENE 4
 
 #if SCENE == 1
 FluidMaterial material(1000.0f, 0.1f, 1.2f, 1.0f, 2.0f);
@@ -49,6 +49,13 @@ FluidMaterial material(3.0f, 3.5f, 998.29f, 0.0728f, 3.0f/*?*/);
 SphFluidSolver solver(WIDTH, HEIGHT, DEPTH, 0.0457f, 0.003f, material);
 const float gravity = 9.81f;
 const float scale = 25.0f;
+float collision_restitution = 1.0f;
+#elif SCENE == 4
+//point_damping = viscosity, sorta
+FluidMaterial material(100.0f, 0.5f, 1.2f, 1.0f, 1.0f);
+SphFluidSolver solver(WIDTH, HEIGHT, DEPTH, 1.1f, 0.005f, material);
+const float gravity = 50.0f;
+const float scale = 1.0f;
 float collision_restitution = 1.0f;
 #endif
 
