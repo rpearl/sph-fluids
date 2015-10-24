@@ -15,6 +15,8 @@ using namespace std;
 
 #define OPEN_MP 0
 
+#define PARTICLE_MASS           1.0f
+
 
 inline float SphFluidSolver::kernel(const Vector3f &r, const float h) {
 	return 315.0f / (64.0f * PI_FLOAT * POW9(h)) * CUBE(SQR(h) - dot(r, r));
@@ -52,8 +54,8 @@ inline void SphFluidSolver::add_density(Particle &particle, Particle &neighbour)
 	}
 
     float common = kernel(r, core_radius);
-    particle.density += neighbour.mass * common;
-	neighbour.density += particle.mass * common;
+    particle.density += PARTICLE_MASS * common;
+	neighbour.density += PARTICLE_MASS * common;
 }
 
 void SphFluidSolver::sum_density(GridElement &grid_element, Particle &particle) {
@@ -102,28 +104,24 @@ inline void SphFluidSolver::add_forces(Particle &particle, Particle &neighbour) 
 	Vector3f common = 0.5f * material.gas_constant
 			* ((particle.density - material.rest_density) + (neighbour.density - material.rest_density))
 	        * gradient_pressure_kernel(r, core_radius);
-	particle.force += -neighbour.mass / neighbour.density * common;
-	particle.pressure_force += -neighbour.mass / neighbour.density * common;
-	neighbour.force -= -particle.mass / particle.density * common;
-	neighbour.pressure_force -= -particle.mass / particle.density * common;
+	particle.force += -PARTICLE_MASS / neighbour.density * common;
+	neighbour.force -= -PARTICLE_MASS / particle.density * common;
 
 	/* Compute the viscosity force. */
 	common = material.mu * (neighbour.velocity - particle.velocity)
 	         * laplacian_viscosity_kernel(r, core_radius);
-	particle.force += neighbour.mass / neighbour.density * common;
-	particle.viscosity_force += neighbour.mass / neighbour.density * common;
-	neighbour.force -= particle.mass / particle.density * common;
-	neighbour.viscosity_force -= particle.mass / particle.density * common;
+	particle.force += PARTICLE_MASS / neighbour.density * common;
+	neighbour.force -= PARTICLE_MASS / particle.density * common;
 
 	/* Compute the gradient of the color field. */
 	common = gradient_kernel(r, core_radius);
-	particle.color_gradient += neighbour.mass / neighbour.density * common;
-	neighbour.color_gradient -= particle.mass / particle.density * common;
+	particle.color_gradient += PARTICLE_MASS / neighbour.density * common;
+	neighbour.color_gradient -= PARTICLE_MASS / particle.density * common;
 
 	/* Compute the laplacian of the color field. */
 	float value = laplacian_kernel(r, core_radius);
-	particle.color_laplacian += neighbour.mass / neighbour.density * value;
-	neighbour.color_laplacian += particle.mass / particle.density * value;
+	particle.color_laplacian += PARTICLE_MASS / neighbour.density * value;
+	neighbour.color_laplacian += PARTICLE_MASS / particle.density * value;
 }
 
 void SphFluidSolver::sum_forces(GridElement &grid_element, Particle &particle) {
@@ -164,7 +162,7 @@ inline void SphFluidSolver::update_particle(Particle &particle) {
 	}
 
 	Vector3f acceleration =   particle.force / particle.density
-	               - material.point_damping * particle.velocity / particle.mass;
+	               - material.point_damping * particle.velocity / PARTICLE_MASS;
 	particle.velocity += timestep * acceleration;
 
 	particle.position += timestep * particle.velocity;
@@ -182,8 +180,6 @@ void SphFluidSolver::update_particles(int i, int j, int k) {
 inline void SphFluidSolver::reset_particle(Particle &particle) {
 	particle.density = 0.0f;
 	particle.force = Vector3f(0.0f);
-	particle.viscosity_force = Vector3f(0.0f);
-	particle.pressure_force = Vector3f(0.0f);
 	particle.color_gradient = Vector3f(0.0f);
 	particle.color_laplacian = 0.0f;
 }

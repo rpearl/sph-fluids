@@ -1,4 +1,4 @@
-LDFLAGS=-framework OpenGL -framework GLUT 
+LDFLAGS=-framework OpenGL -framework GLUT -Wno-deprecated-declarations
 CPPFLAGS=-O2
 sph: glWater.cpp sph.cpp
 

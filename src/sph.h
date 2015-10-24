@@ -14,19 +14,14 @@ struct GridElement;
 
 struct Particle {
 
-	int id;
-	float mass;
-	float density;
 	Vector3f position;
 	Vector3f velocity;
 	Vector3f force;
 	Vector3f color_gradient;
+	float density;
 	float color_laplacian;
 
-	Vector3f viscosity_force;
-	Vector3f pressure_force;
-
-	Particle() { mass = 1.0f; }
+	int id;
 };
 
 struct GridElement {
