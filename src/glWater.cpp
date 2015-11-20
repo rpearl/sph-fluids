@@ -7,9 +7,9 @@
 
 using namespace std;
 
-#define WIDTH		6
-#define HEIGHT		6
-#define DEPTH		6
+#define WIDTH		8
+#define HEIGHT		8
+#define DEPTH		8
 
 
 int wndWidth = 700, wndHeight = 700;
@@ -20,6 +20,7 @@ bool zoom, trans;
 
 bool paused = false;
 bool track_gravity = true;
+bool show_particles = true;
 
 GLuint sphereId;
 
@@ -28,7 +29,7 @@ Vector3f gravity_direction;
 
 int simulation_steps = 2;
 
-const int particle_count = 256;
+const int particle_count = 512;
 
 #define SCENE 4
 
@@ -52,7 +53,7 @@ const float scale = 25.0f;
 float collision_restitution = 1.0f;
 #elif SCENE == 4
 //point_damping = viscosity, sorta
-FluidMaterial material(100.0f, 0.5f, 1.2f, 1.0f, 1.0f);
+FluidMaterial material(100.0f, 3.0f, 0.6f, 1.0f, 3.0f);
 SphFluidSolver solver(WIDTH, HEIGHT, DEPTH, 1.1f, 0.005f, material);
 const float gravity = 50.0f;
 const float scale = 1.0f;
@@ -241,6 +242,9 @@ void keyboard(unsigned char key, int x, int y) {
 	case ' ':
 		paused = !paused;
 		break;
+	case 'p': case 'P':
+		show_particles = !show_particles;
+		break;
 	case 'g':
 	case 'G':
 		track_gravity = !track_gravity;
@@ -300,7 +304,39 @@ void display() {
 	}
 
 	gettimeofday(&tv1, NULL);
-	solver.foreach_particle(draw_particle);
+	glDisable(GL_LIGHTING);
+
+	// (0,0,0) -> (0,1,0) -> (1,1,0) -> (1,0,0)
+
+	glColor3ub(0, 0, 255);
+
+	int weights[8][8];
+
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			weights[x][y] = 0;
+
+			for (int z = 0; z < 8; z++) {
+				weights[x][y] += (8-z)*solver.grid(x,y,z).particles.size();
+			}
+		}
+	}
+
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			glColor3ub(weights[x][y],weights[x][y], weights[x][y]); // hax do not use
+			glBegin(GL_POLYGON);
+			glVertex3f(x    , y    , 0);
+			glVertex3f(x    , y+0.9, 0);
+			glVertex3f(x+0.9, y+0.9, 0);
+			glVertex3f(x+0.9, y    , 0);
+			glEnd();
+		}
+	}
+	glEnable(GL_LIGHTING);
+	if (show_particles) {
+		solver.foreach_particle(draw_particle);
+	}
 	gettimeofday(&tv2, NULL);
 	int renderingTime = 1000 * (tv2.tv_sec - tv1.tv_sec) + (tv2.tv_usec - tv1.tv_usec) / 1000;
 	printf("TIME[rendering]       : %d ms\n", renderingTime);

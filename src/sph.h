@@ -101,6 +101,7 @@ public:
 			}
 		}
 	}
+	GridElement &grid(int i, int j, int k);
 
 private:
 
@@ -148,7 +149,6 @@ private:
 
 	void update_particles();
 
-	GridElement &grid(int i, int j, int k);
 
 	GridElement &sleeping_grid(int i, int j, int k);
 

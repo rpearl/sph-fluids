@@ -316,7 +316,7 @@ void SphFluidSolver::init_particles(Particle *particles, int count) {
 	}
 }
 
-inline GridElement &SphFluidSolver::grid(int i, int j, int k) {
+GridElement &SphFluidSolver::grid(int i, int j, int k) {
 	return grid_elements[grid_index(i, j, k)];
 }
 
