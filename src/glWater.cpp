@@ -11,6 +11,9 @@ using namespace std;
 #define HEIGHT		8
 #define DEPTH		8
 
+#define PANELS 8
+
+#define LEDS 8
 
 int wndWidth = 700, wndHeight = 700;
 
@@ -29,7 +32,7 @@ Vector3f gravity_direction;
 
 int simulation_steps = 2;
 
-const int particle_count = 512;
+const int particle_count = 1024;
 
 #define SCENE 4
 
@@ -53,7 +56,7 @@ const float scale = 25.0f;
 float collision_restitution = 1.0f;
 #elif SCENE == 4
 //point_damping = viscosity, sorta
-FluidMaterial material(100.0f, 3.0f, 0.6f, 1.0f, 3.0f);
+FluidMaterial material(250.0f, 3.0f, 1.2f, 0.0728f, 1.5f);
 SphFluidSolver solver(WIDTH, HEIGHT, DEPTH, 1.1f, 0.005f, material);
 const float gravity = 50.0f;
 const float scale = 1.0f;
@@ -310,29 +313,97 @@ void display() {
 
 	glColor3ub(0, 0, 255);
 
-	int weights[8][8];
+	int weights[PANELS][LEDS][LEDS];
+	memset(weights, 0, sizeof(weights));
 
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			weights[x][y] = 0;
+	for (int x = 0; x < LEDS; x++) {
+		for (int y = 0; y < LEDS; y++) {
+			for (int z = 0; z < LEDS; z++) {
+				size_t s = solver.grid(x,y,z).particles.size();
+				weights[0][x][y] = 32*solver.grid(x,y,0).particles.size() +
+                                    4*solver.grid(x,y,1).particles.size();
 
-			for (int z = 0; z < 8; z++) {
-				weights[x][y] += (8-z)*solver.grid(x,y,z).particles.size();
+				weights[1][x][y] = 32*solver.grid(x,y,7).particles.size() +
+                                    4*solver.grid(x,y,6).particles.size();
+
+				weights[2][x][z] = 32*solver.grid(x,0,z).particles.size() +
+                                    4*solver.grid(x,1,z).particles.size();
+
+				weights[3][x][z] = 32*solver.grid(x,7,z).particles.size() +
+                                    4*solver.grid(x,6,z).particles.size();
+
+				weights[4][y][z] = 32*solver.grid(0,y,z).particles.size() +
+                                    4*solver.grid(1,y,z).particles.size();
+
+				weights[5][y][z] = 32*solver.grid(7,y,z).particles.size() +
+                                    4*solver.grid(6,y,z).particles.size();
 			}
 		}
 	}
 
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			glColor3ub(weights[x][y],weights[x][y], weights[x][y]); // hax do not use
-			glBegin(GL_POLYGON);
-			glVertex3f(x    , y    , 0);
-			glVertex3f(x    , y+0.9, 0);
-			glVertex3f(x+0.9, y+0.9, 0);
-			glVertex3f(x+0.9, y    , 0);
-			glEnd();
+	uint8_t w;
+
+	for (int x = 0; x < LEDS; x++) {
+		for (int y = 0; y < LEDS; y++) {
+			for (int z = 0; z < LEDS; z++) {
+				w = min(weights[0][x][y], 255);
+				glColor3ub(w,w,w);
+				glBegin(GL_POLYGON);
+				glVertex3f(x    , y    , 0);
+				glVertex3f(x    , y+1.0, 0);
+				glVertex3f(x+1.0, y+1.0, 0);
+				glVertex3f(x+1.0, y    , 0);
+				glEnd();
+
+				w = min(weights[1][x][y], 255);
+				glColor3ub(w,w,w);
+				glBegin(GL_POLYGON);
+				glVertex3f(x    , y    , 8);
+				glVertex3f(x    , y+1.0, 8);
+				glVertex3f(x+1.0, y+1.0, 8);
+				glVertex3f(x+1.0, y    , 8);
+				glEnd();
+
+				w = min(weights[2][x][z], 255);
+				glColor3ub(w,w,w);
+				glBegin(GL_POLYGON);
+				glVertex3f(x    , 0, z    );
+				glVertex3f(x    , 0, z+1.0);
+				glVertex3f(x+1.0, 0, z+1.0);
+				glVertex3f(x+1.0, 0, z    );
+				glEnd();
+
+				w = min(weights[3][x][z], 255);
+				glColor3ub(w,w,w);
+				glBegin(GL_POLYGON);
+				glVertex3f(x    , 8, z    );
+				glVertex3f(x    , 8, z+1.0);
+				glVertex3f(x+1.0, 8, z+1.0);
+				glVertex3f(x+1.0, 8, z    );
+				glEnd();
+
+				w = min(weights[4][y][z], 255);
+				glColor3ub(w,w,w);
+				glBegin(GL_POLYGON);
+				glVertex3f(0, y    , z    );
+				glVertex3f(0, y    , z+1.0);
+				glVertex3f(0, y+1.0, z+1.0);
+				glVertex3f(0, y+1.0, z    );
+				glEnd();
+
+				w = min(weights[5][y][z], 255);
+				glColor3ub(w,w,w);
+				glBegin(GL_POLYGON);
+				glVertex3f(8, y    , z    );
+				glVertex3f(8, y    , z+1.0);
+				glVertex3f(8, y+1.0, z+1.0);
+				glVertex3f(8, y+1.0, z    );
+				glEnd();
+			}
 		}
 	}
+
+
 	glEnable(GL_LIGHTING);
 	if (show_particles) {
 		solver.foreach_particle(draw_particle);
