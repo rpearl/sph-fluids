@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-using namespace std;
-
 #define PI_FLOAT				3.141592653589793f
 
 #define SQR(x)					((x) * (x))
@@ -43,7 +41,7 @@ inline float SphFluidSolver::laplacian_viscosity_kernel(const Vector3f &r, const
 	return 45.0f / (PI_FLOAT * POW6(h)) * (h - length(r));
 }
 
-inline void SphFluidSolver::add_density(uint16_t particle_id, uint16_t neighbour_id) {
+inline void SphFluidSolver::add_density(uint8_t particle_id, uint8_t neighbour_id) {
 	if (particle_id > neighbour_id) {
 		return;
 	}
@@ -61,14 +59,14 @@ inline void SphFluidSolver::add_density(uint16_t particle_id, uint16_t neighbour
 	neighbour.density += PARTICLE_MASS * common;
 }
 
-void SphFluidSolver::sum_density(GridElement &grid_element, uint16_t particle_id) {
+void SphFluidSolver::sum_density(GridElement &grid_element, uint8_t particle_id) {
 	auto &plist = grid_element.particles;
 	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
 		add_density(particle_id, *piter);
 	}
 }
 
-inline void SphFluidSolver::sum_all_density(int i, int j, int k, uint16_t particle_id) {
+inline void SphFluidSolver::sum_all_density(int i, int j, int k, uint8_t particle_id) {
 	for (int z = k - 1; z <= k + 1; z++) {
 		for (int y = j - 1; y <= j + 1; y++) {
 			for (int x = i - 1; x <= i + 1; x++) {
@@ -93,7 +91,7 @@ void SphFluidSolver::update_densities(int i, int j, int k) {
 	}
 }
 
-inline void SphFluidSolver::add_forces(uint16_t particle_id, uint16_t neighbour_id) {
+inline void SphFluidSolver::add_forces(uint8_t particle_id, uint8_t neighbour_id) {
 	if (particle_id >= neighbour_id) {
 		return;
 	}
@@ -120,14 +118,14 @@ inline void SphFluidSolver::add_forces(uint16_t particle_id, uint16_t neighbour_
 	neighbour.force -= PARTICLE_MASS / particle.density * common;
 }
 
-void SphFluidSolver::sum_forces(GridElement &grid_element, uint16_t particle_id) {
+void SphFluidSolver::sum_forces(GridElement &grid_element, uint8_t particle_id) {
 	auto  &plist = grid_element.particles;
 	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
 		add_forces(particle_id, *piter);
 	}
 }
 
-void SphFluidSolver::sum_all_forces(int i, int j, int k, uint16_t particle_id) {
+void SphFluidSolver::sum_all_forces(int i, int j, int k, uint8_t particle_id) {
 	for (int z = k - 1; z <= k + 1; z++) {
 		for (int y = j - 1; y <= j + 1; y++) {
 			for (int x = i - 1; x <= i + 1; x++) {
@@ -196,7 +194,7 @@ void SphFluidSolver::update_grid() {
 			}
 		}
 	}
-	for (uint16_t i = 0; i < particle_count; i++) {
+	for (uint8_t i = 0; i < particle_count; i++) {
 		add_to_grid(i);
 	}
 }
@@ -303,7 +301,7 @@ inline int SphFluidSolver::grid_index(int i, int j, int k) {
 	return grid_width * (k * grid_height + j) + i;
 }
 
-inline void SphFluidSolver::add_to_grid(uint16_t idx) {
+inline void SphFluidSolver::add_to_grid(uint8_t idx) {
 	Particle &particle = particles[idx];
 	int i = (int)(particle.position.x / core_radius);
 	int j = (int)(particle.position.y / core_radius);

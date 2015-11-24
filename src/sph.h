@@ -1,6 +1,5 @@
 #include <vector>
-
-using namespace std;
+#include <cstdint>
 
 class SphFluidSolver;
 struct Particle;
@@ -11,7 +10,6 @@ struct GridElement;
 
 #include "Vector.h"
 
-
 struct Particle {
 
 	Vector3f position;
@@ -21,7 +19,7 @@ struct Particle {
 };
 
 struct GridElement {
-	vector<uint16_t> particles;
+	std::vector<uint8_t> particles;
 };
 
 struct FluidMaterial {
@@ -113,19 +111,19 @@ private:
 
 	float laplacian_viscosity_kernel(const Vector3f &r, const float h);
 
-	void add_density(uint16_t particle_id, uint16_t neighbour_id);
+	void add_density(uint8_t particle_id, uint8_t neighbour_id);
 
-	void sum_density(GridElement &grid_element, uint16_t particle_id);
+	void sum_density(GridElement &grid_element, uint8_t particle_id);
 
-	void sum_all_density(int i, int j, int k, uint16_t particle_id);
+	void sum_all_density(int i, int j, int k, uint8_t particle_id);
 
 	void update_densities(int i, int j, int k);
 
-	void add_forces(uint16_t particle_id, uint16_t neighbour_id);
+	void add_forces(uint8_t particle_id, uint8_t neighbour_id);
 
-	void sum_forces(GridElement &grid_element, uint16_t particle_id);
+	void sum_forces(GridElement &grid_element, uint8_t particle_id);
 
-	void sum_all_forces(int i, int j, int k, uint16_t particle_id);
+	void sum_all_forces(int i, int j, int k, uint8_t particle_id);
 
 	void update_forces(int i, int j, int k);
 
@@ -152,7 +150,7 @@ private:
 
 	int grid_index(int i, int j, int k);
 
-	void add_to_grid(uint16_t);
+	void add_to_grid(uint8_t);
 };
 
 #endif /* _SPH_H_ */

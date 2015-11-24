@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <cstdio>
+#include <list>
 #include <GLUT/glut.h>
 
 #include "sph.h"
@@ -33,7 +34,8 @@ Vector3f gravity_direction;
 
 int simulation_steps = 2;
 
-const int particle_count = 384;
+const int particle_count = 255;
+Particle particles[particle_count];
 
 #define SCENE 4
 
@@ -68,7 +70,6 @@ float collision_restitution = 1.0f;
 
 void init_liquid() {
     printf("%zu\n", sizeof(Particle) * particle_count);
-	Particle *particles = new Particle[particle_count];
 
 	int count = particle_count;
 	Particle *particle_iter = particles;
