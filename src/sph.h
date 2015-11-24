@@ -17,9 +17,7 @@ struct Particle {
 	Vector3f position;
 	Vector3f velocity;
 	Vector3f force;
-	Vector3f color_gradient;
 	float density;
-	float color_laplacian;
 };
 
 struct GridElement {

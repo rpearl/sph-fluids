@@ -118,16 +118,6 @@ inline void SphFluidSolver::add_forces(uint16_t particle_id, uint16_t neighbour_
 	         * laplacian_viscosity_kernel(r, core_radius);
 	particle.force += PARTICLE_MASS / neighbour.density * common;
 	neighbour.force -= PARTICLE_MASS / particle.density * common;
-
-	/* Compute the gradient of the color field. */
-	common = gradient_kernel(r, core_radius);
-	particle.color_gradient += PARTICLE_MASS / neighbour.density * common;
-	neighbour.color_gradient -= PARTICLE_MASS / particle.density * common;
-
-	/* Compute the laplacian of the color field. */
-	float value = laplacian_kernel(r, core_radius);
-	particle.color_laplacian += PARTICLE_MASS / neighbour.density * value;
-	neighbour.color_laplacian += PARTICLE_MASS / particle.density * value;
 }
 
 void SphFluidSolver::sum_forces(GridElement &grid_element, uint16_t particle_id) {
@@ -162,11 +152,6 @@ void SphFluidSolver::update_forces(int i, int j, int k) {
 }
 
 inline void SphFluidSolver::update_particle(Particle &particle) {
-	if (length(particle.color_gradient) > 0.001f) {
-		particle.force +=   -material.sigma * particle.color_laplacian
-		                  * normalize(particle.color_gradient);
-	}
-
 	Vector3f acceleration =   particle.force / particle.density
 	               - material.point_damping * particle.velocity / PARTICLE_MASS;
 	particle.velocity += timestep * acceleration;
@@ -186,8 +171,6 @@ void SphFluidSolver::update_particles(int i, int j, int k) {
 inline void SphFluidSolver::reset_particle(Particle &particle) {
 	particle.density = 0.0f;
 	particle.force = Vector3f(0.0f);
-	particle.color_gradient = Vector3f(0.0f);
-	particle.color_laplacian = 0.0f;
 }
 
 void SphFluidSolver::reset_particles() {
