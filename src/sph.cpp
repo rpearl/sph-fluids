@@ -59,9 +59,9 @@ inline void SphFluidSolver::add_density(Particle &particle, Particle &neighbour)
 }
 
 void SphFluidSolver::sum_density(GridElement &grid_element, Particle &particle) {
-	list<Particle> &plist = grid_element.particles;
-	for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-		add_density(particle, *piter);
+	auto &plist = grid_element.particles;
+	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+		add_density(particle, particles[*piter]);
 	}
 }
 
@@ -84,9 +84,9 @@ inline void SphFluidSolver::sum_all_density(int i, int j, int k, Particle &parti
 void SphFluidSolver::update_densities(int i, int j, int k) {
 	GridElement &grid_element = grid(i, j, k);
 
-	list<Particle> &plist = grid_element.particles;
-	for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-		sum_all_density(i, j, k, *piter);
+	auto &plist = grid_element.particles;
+	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+		sum_all_density(i, j, k, particles[*piter]);
 	}
 }
 
@@ -125,9 +125,9 @@ inline void SphFluidSolver::add_forces(Particle &particle, Particle &neighbour) 
 }
 
 void SphFluidSolver::sum_forces(GridElement &grid_element, Particle &particle) {
-	list<Particle>  &plist = grid_element.particles;
-	for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-		add_forces(particle, *piter);
+	auto  &plist = grid_element.particles;
+	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+		add_forces(particle, particles[*piter]);
 	}
 }
 
@@ -149,9 +149,9 @@ void SphFluidSolver::sum_all_forces(int i, int j, int k, Particle &particle) {
 
 void SphFluidSolver::update_forces(int i, int j, int k) {
 	GridElement &grid_element = grid(i, j, k);
-	list<Particle>&plist = grid_element.particles;
-	for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-		sum_all_forces(i, j, k, *piter);
+	auto &plist = grid_element.particles;
+	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+		sum_all_forces(i, j, k, particles[*piter]);
 	}
 }
 
@@ -171,9 +171,9 @@ inline void SphFluidSolver::update_particle(Particle &particle) {
 void SphFluidSolver::update_particles(int i, int j, int k) {
 	GridElement &grid_element = grid(i, j, k);
 
-	list<Particle> &plist = grid_element.particles;
-	for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-		update_particle(*piter);
+	auto &plist = grid_element.particles;
+	for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+		update_particle(particles[*piter]);
 	}
 }
 
@@ -190,21 +190,12 @@ void SphFluidSolver::reset_particles() {
 			for (int i = 0; i < grid_width; i++) {
 				GridElement &grid_element = grid(i, j, k);
 
-				list<Particle> &plist = grid_element.particles;
-				for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-					reset_particle(*piter);
+				auto &plist = grid_element.particles;
+				for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+					reset_particle(particles[*piter]);
 				}
 			}
 		}
-	}
-}
-
-inline void SphFluidSolver::insert_into_grid(int i, int j, int k) {
-	GridElement &grid_element = grid(i, j, k);
-
-	list<Particle> &plist = grid_element.particles;
-	for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-		add_to_grid(sleeping_grid_elements, *piter);
 	}
 }
 
@@ -212,14 +203,13 @@ void SphFluidSolver::update_grid() {
 	for (int k = 0; k < grid_depth; k++) {
 		for (int j = 0; j < grid_height; j++) {
 			for (int i = 0; i < grid_width; i++) {
-				insert_into_grid(i, j, k);
 				grid(i, j, k).particles.clear();
 			}
 		}
 	}
-
-	/* Swap the grids. */
-	swap(grid_elements, sleeping_grid_elements);
+	for (uint16_t i = 0; i < particle_count; i++) {
+		add_to_grid(i);
+	}
 }
 
 void SphFluidSolver::update_densities() {
@@ -307,12 +297,12 @@ void SphFluidSolver::update(void(*inter_hook)(), void(*post_hook)()) {
 }
 
 void SphFluidSolver::init_particles(Particle *particles, int count) {
+	this->particle_count = count;
+	this->particles = particles;
 	grid_elements = new GridElement[grid_width * grid_height * grid_depth];
-	sleeping_grid_elements = new GridElement[grid_width * grid_height * grid_depth];
 
 	for (int x = 0; x < count; x++) {
-		particles[x].id = x;
-		add_to_grid(grid_elements, particles[x]);
+		add_to_grid(x);
 	}
 }
 
@@ -320,18 +310,15 @@ GridElement &SphFluidSolver::grid(int i, int j, int k) {
 	return grid_elements[grid_index(i, j, k)];
 }
 
-inline GridElement &SphFluidSolver::sleeping_grid(int i, int j, int k) {
-	return sleeping_grid_elements[grid_index(i, j, k)];
-}
-
 inline int SphFluidSolver::grid_index(int i, int j, int k) {
 	return grid_width * (k * grid_height + j) + i;
 }
 
-inline void SphFluidSolver::add_to_grid(GridElement *target_grid, Particle &particle) {
-	int i = (int) (particle.position.x / core_radius);
-	int j = (int) (particle.position.y / core_radius);
-	int k = (int) (particle.position.z / core_radius);
-	target_grid[grid_index(i, j, k)].particles.push_back(particle);
+inline void SphFluidSolver::add_to_grid(uint16_t idx) {
+	Particle &particle = particles[idx];
+	int i = (int)(particle.position.x / core_radius);
+	int j = (int)(particle.position.y / core_radius);
+	int k = (int)(particle.position.z / core_radius);
+	grid_elements[grid_index(i, j, k)].particles.push_back(idx);
 }
 

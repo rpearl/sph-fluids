@@ -1,4 +1,4 @@
-#include <list>
+#include <vector>
 
 using namespace std;
 
@@ -25,7 +25,7 @@ struct Particle {
 };
 
 struct GridElement {
-	list<Particle> particles;
+	vector<uint16_t> particles;
 };
 
 struct FluidMaterial {
@@ -61,8 +61,10 @@ class SphFluidSolver {
 
 	const FluidMaterial material;
 
+	Particle *particles;
+	size_t particle_count;
+
 	GridElement *grid_elements;
-	GridElement *sleeping_grid_elements;
 
 public:
 
@@ -93,9 +95,9 @@ public:
 				for (int i = 0; i < grid_width; i++) {
 					GridElement &grid_element = grid_elements[grid_width * (k * grid_height + j) + i];
 
-					list<Particle> &plist = grid_element.particles;
-					for (list<Particle>::iterator piter = plist.begin(); piter != plist.end(); piter++) {
-						function(*piter);
+					auto &plist = grid_element.particles;
+					for (auto piter = plist.begin(); piter != plist.end(); piter++) {
+						function(particles[*piter]);
 					}
 				}
 			}
@@ -154,7 +156,7 @@ private:
 
 	int grid_index(int i, int j, int k);
 
-	void add_to_grid(GridElement *target_grid, Particle &particle);
+	void add_to_grid(uint16_t);
 };
 
 #endif /* _SPH_H_ */
