@@ -20,14 +20,6 @@ inline float SphFluidSolver::kernel(const Vector3f &r, const float h) {
 	return 315.0f / (64.0f * PI_FLOAT * POW9(h)) * CUBE(SQR(h) - dot(r, r));
 }
 
-inline Vector3f SphFluidSolver::gradient_kernel(const Vector3f &r, const float h) {
-	return -945.0f / (32.0f * PI_FLOAT * POW9(h)) * SQR(SQR(h) - dot(r, r)) * r;
-}
-
-inline float SphFluidSolver::laplacian_kernel(const Vector3f &r, const float h) {
-	return   945.0f / (32.0f * PI_FLOAT * POW9(h))
-	       * (SQR(h) - dot(r, r)) * (7.0f * dot(r, r) - 3.0f * SQR(h));
-}
 
 inline Vector3f SphFluidSolver::gradient_pressure_kernel(const Vector3f &r, const float h) {
 	if (dot(r, r) < SQR(0.001f)) {

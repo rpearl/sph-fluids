@@ -12,7 +12,7 @@ using namespace std;
 #define HEIGHT		8
 #define DEPTH		8
 
-#define PANELS 8
+#define PANELS 6
 
 #define LEDS 8
 
@@ -61,7 +61,7 @@ float collision_restitution = 1.0f;
 //point_damping = viscosity, sorta
 FluidMaterial material(250.0f, 3.0f, 0.8f, 0.0728f, 1.5f);
 SphFluidSolver solver(WIDTH, HEIGHT, DEPTH, 1.1f, 0.005f, material);
-const float gravity = 50.0f;
+const float gravity = 50.0/4;
 const float scale = 1.0f;
 float collision_restitution = 1.0f;
 #endif
@@ -321,27 +321,19 @@ void display() {
         int weights[PANELS][LEDS][LEDS];
         memset(weights, 0, sizeof(weights));
 
+#define NP(x,y,z) solver.grid(x,y,z).particles.size()
+
         for (int x = 0; x < LEDS; x++) {
             for (int y = 0; y < LEDS; y++) {
                 for (int z = 0; z < LEDS; z++) {
-                    size_t s = solver.grid(x,y,z).particles.size();
-                    weights[0][x][y] = 32*solver.grid(x,y,0).particles.size() +
-                        4*solver.grid(x,y,1).particles.size();
+                    weights[0][x][y] = 32*NP(x,y,0) + 4*NP(x,y,1);
+                    weights[1][x][y] = 32*NP(x,y,7) + 4*NP(x,y,6);
 
-                    weights[1][x][y] = 32*solver.grid(x,y,7).particles.size() +
-                        4*solver.grid(x,y,6).particles.size();
+                    weights[2][x][z] = 32*NP(x,0,z) + 4*NP(x,1,z);
+                    weights[3][x][z] = 32*NP(x,7,z) + 4*NP(x,6,z);
 
-                    weights[2][x][z] = 32*solver.grid(x,0,z).particles.size() +
-                        4*solver.grid(x,1,z).particles.size();
-
-                    weights[3][x][z] = 32*solver.grid(x,7,z).particles.size() +
-                        4*solver.grid(x,6,z).particles.size();
-
-                    weights[4][y][z] = 32*solver.grid(0,y,z).particles.size() +
-                        4*solver.grid(1,y,z).particles.size();
-
-                    weights[5][y][z] = 32*solver.grid(7,y,z).particles.size() +
-                        4*solver.grid(6,y,z).particles.size();
+                    weights[4][y][z] = 32*NP(0,y,z) + 4*NP(1,y,z);
+                    weights[5][y][z] = 32*NP(7,y,z) + 4*NP(6,y,z);
                 }
             }
         }
