@@ -20,8 +20,6 @@ struct Particle {
 	Vector3f color_gradient;
 	float density;
 	float color_laplacian;
-
-	int id;
 };
 
 struct GridElement {
@@ -117,19 +115,19 @@ private:
 
 	float laplacian_viscosity_kernel(const Vector3f &r, const float h);
 
-	void add_density(Particle &particle, Particle &neighbour);
+	void add_density(uint16_t particle_id, uint16_t neighbour_id);
 
-	void sum_density(GridElement &grid_element, Particle &particle);
+	void sum_density(GridElement &grid_element, uint16_t particle_id);
 
-	void sum_all_density(int i, int j, int k, Particle &particle);
+	void sum_all_density(int i, int j, int k, uint16_t particle_id);
 
 	void update_densities(int i, int j, int k);
 
-	void add_forces(Particle &particle, Particle &neighbour);
+	void add_forces(uint16_t particle_id, uint16_t neighbour_id);
 
-	void sum_forces(GridElement &grid_element, Particle &particle);
+	void sum_forces(GridElement &grid_element, uint16_t particle_id);
 
-	void sum_all_forces(int i, int j, int k, Particle &particle);
+	void sum_all_forces(int i, int j, int k, uint16_t particle_id);
 
 	void update_forces(int i, int j, int k);
 
